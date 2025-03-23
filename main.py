@@ -1,3 +1,4 @@
+import numpy as np
 from PIL import Image, ImageTk
 import tkinter as tk
 from functions.image_manipulation import floyd_steinberg, pixelate_image
