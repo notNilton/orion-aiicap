@@ -1,86 +1,74 @@
-# implementation of a simple floyd-steinberg dithering algorithm
-from PIL import Image
 import numpy as np
+from PIL import Image
 
-def simple_threshold(image):
-    
-    
+def floyd_steinberg(image, levels=4):
     """
-    Applies a simple thresholding to an image, converting each RGB component
-    of each pixel to either 0 or 255 based on its original value.
-
-    Args:
-        image (PIL.Image): The input image.
-
-    Returns:
-        PIL.Image: The thresholded image.
+    Aplica Floyd-Steinberg em imagens RGB com paleta reduzida.
     """
-
-    # Convert the image to RGB mode if it's not already
-
-    # Convert the image to a NumPy array for easier manipulation
-    pixels = np.array(image, dtype=np.uint8)
-
-    # Get the width and height of the image
-    height, width, _ = pixels.shape # Correct order for numpy array shape
-
-    # Iterate over each pixel and apply thresholding to each color component
-    for y in range(height):
-        for x in range(width):
-            for c in range(3):  # Iterate over the three color channels (R, G, B)
-                old_pixel = pixels[y, x, c]
-                new_pixel = 255 if old_pixel > 127 else 0
-                pixels[y, x, c] = new_pixel
-
-    # Convert the NumPy array back to a PIL image
-    thresholded_image = Image.fromarray(pixels)
-
-    return thresholded_image
-
-def floyd_steinberg(image):
-    """
-    Applies Floyd-Steinberg dithering to an image.
-
-    Args:
-        image (PIL.Image): The input image.
-
-    Returns:
-        PIL.Image: The dithered image.
-    """
-    # Convert the image to grayscale (if it's not already)
-    image = image.convert("L")
-
-    # Convert the image to a NumPy array for easier manipulation
+    # Converte a imagem para um array NumPy
     pixels = np.array(image, dtype=float)
-
-    # Get the width and height of the image
     width, height = image.size
-
-    # Iterate over each pixel
-    for y in range(height - 1):  # Stop at height - 1 to avoid index errors
-        for x in range(1, width - 1):  # Stop at width - 1 to avoid index errors
-            # Get the current pixel value
-            old_pixel = pixels[y, x]
-
-            # Quantize the pixel to 0 or 255
-            new_pixel = 255 if old_pixel > 127 else 0
-
-            # Set the new pixel value
-            pixels[y, x] = new_pixel
-
-            # Calculate the quantization error
-            error = old_pixel - new_pixel
-
-            # Distribute the error to neighboring pixels
-            pixels[y, x + 1] += error * 7 / 16  # Right
-            pixels[y + 1, x - 1] += error * 3 / 16  # Bottom-left
-            pixels[y + 1, x] += error * 5 / 16  # Bottom
-            pixels[y + 1, x + 1] += error * 1 / 16  # Bottom-right
-
-    # Clip pixel values to ensure they are within the valid range [0, 255]
+    
+    # Calcula o passo de quantização
+    step = 255.0 / (levels - 1)
+    
+    # Itera sobre cada pixel
+    for y in range(height - 1):  # Evita ultrapassar os limites
+        for x in range(1, width - 1):  # Evita ultrapassar os limites
+            # Processa cada canal de cor (R, G, B)
+            for c in range(3):
+                old_pixel = pixels[y, x, c]
+                
+                # Quantiza o pixel para o nível mais próximo
+                new_pixel = round(old_pixel / step) * step
+                new_pixel = np.clip(new_pixel, 0, 255)
+                
+                # Define o novo valor do pixel
+                pixels[y, x, c] = new_pixel
+                
+                # Calcula o erro de quantização
+                error = old_pixel - new_pixel
+                
+                # Distribui o erro para os vizinhos
+                pixels[y, x + 1, c] += error * 7 / 16  # Direita
+                pixels[y + 1, x - 1, c] += error * 3 / 16  # Inferior esquerdo
+                pixels[y + 1, x, c] += error * 5 / 16  # Inferior
+                pixels[y + 1, x + 1, c] += error * 1 / 16  # Inferior direito
+    
+    # Garante que os valores dos pixels estejam no intervalo [0, 255]
     pixels = np.clip(pixels, 0, 255)
+    
+    # Converte o array de volta para uma imagem PIL
+    return Image.fromarray(pixels.astype(np.uint8), mode="RGB")
 
-    # Convert the NumPy array back to a PIL image
-    dithered_image = Image.fromarray(pixels.astype(np.uint8))
 
-    return dithered_image
+def pixelate_image(image, scale_factor=0.1, colors=64):
+    """
+    Reduz a resolução da imagem, quantiza as cores e depois a expande, criando um efeito pixelizado.
+    
+    Args:
+        image (PIL.Image): A imagem original.
+        scale_factor (float): Fator de redução da resolução (0 < scale_factor < 1).
+        colors (int): Número de cores para quantização (padrão: 16).
+    
+    Returns:
+        PIL.Image: A imagem pixelizada com cores reduzidas.
+    """
+    # Calcula as novas dimensões
+    width, height = image.size
+    new_width = int(width * scale_factor)
+    new_height = int(height * scale_factor)
+    
+    # Reduz a resolução da imagem
+    small_image = image.resize((new_width, new_height), Image.NEAREST)
+    
+    # Quantiza as cores para o número especificado
+    quantized_image = small_image.quantize(colors=colors)
+    
+    # Converte de volta para o modo RGB (necessário após quantização)
+    quantized_image = quantized_image.convert("RGB")
+    
+    # Expande a imagem de volta para o tamanho original
+    pixelated_image = quantized_image.resize((width, height), Image.NEAREST)
+    
+    return pixelated_image

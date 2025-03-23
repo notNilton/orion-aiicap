@@ -4,4 +4,3 @@ matplotlib
 numba
 scikit-learn
 Pillow
-
