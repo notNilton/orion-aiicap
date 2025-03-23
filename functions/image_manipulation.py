@@ -1,6 +1,7 @@
 import numpy as np
 from PIL import Image
 
+
 def floyd_steinberg(image, levels=4):
     """
     Aplica Floyd-Steinberg em imagens RGB com paleta reduzida.
@@ -8,6 +9,14 @@ def floyd_steinberg(image, levels=4):
     # Converte a imagem para um array NumPy
     pixels = np.array(image, dtype=float)
     width, height = image.size
+    
+    # Conta a quantidade de pixels na imagem original
+    pixel_count = width * height
+    print(f"Quantidade de pixels na imagem original: {pixel_count}")
+    
+    # Conta a quantidade de cores na imagem original
+    color_count = count_colors(image)
+    print(f"Quantidade de cores na imagem original: {color_count}")
     
     # Calcula o passo de quantização
     step = 255.0 / (levels - 1)
@@ -39,8 +48,13 @@ def floyd_steinberg(image, levels=4):
     pixels = np.clip(pixels, 0, 255)
     
     # Converte o array de volta para uma imagem PIL
-    return Image.fromarray(pixels.astype(np.uint8), mode="RGB")
-
+    output_image = Image.fromarray(pixels.astype(np.uint8), mode="RGB")
+    
+    # Conta a quantidade de cores na imagem após o dithering
+    output_color_count = count_colors(output_image)
+    print(f"Quantidade de cores após dithering: {output_color_count}")
+    
+    return output_image
 
 def pixelate_image(image, scale_factor=0.1, colors=64):
     """
@@ -68,7 +82,35 @@ def pixelate_image(image, scale_factor=0.1, colors=64):
     # Converte de volta para o modo RGB (necessário após quantização)
     quantized_image = quantized_image.convert("RGB")
     
+    # Conta a quantidade de pixels na imagem reduzida
+    pixel_count = new_width * new_height
+    print(f"Quantidade de pixels na imagem reduzida: {pixel_count}")
+    
+    # Conta a quantidade de cores na imagem pixelizada
+    color_count = count_colors(quantized_image)
+    print(f"Quantidade de cores na imagem pixelizada: {color_count}")
+    
     # Expande a imagem de volta para o tamanho original
     pixelated_image = quantized_image.resize((width, height), Image.NEAREST)
     
     return pixelated_image
+
+def count_colors(image):
+    """
+    Conta a quantidade de cores únicas em uma imagem.
+
+    Args:
+        image (PIL.Image): A imagem a ser analisada.
+
+    Returns:
+        int: Número de cores únicas na imagem.
+    """
+    # Converte a imagem para um array numpy
+    pixels = np.array(image)
+    
+    # Redimensiona o array para uma lista de pixels (cada pixel é uma tupla RGB)
+    pixels = pixels.reshape(-1, pixels.shape[-1])
+    
+    # Remove duplicatas para contar cores únicas
+    unique_colors = np.unique(pixels, axis=0)
+    return len(unique_colors)
