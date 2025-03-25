@@ -1,6 +1,24 @@
+# Core dependencies
 numpy
 opencv-python
-matplotlib
-numba
-scikit-learn
 Pillow
+
+# Scientific computing
+scikit-learn
+scipy
+
+# Visualization
+matplotlib
+seaborn
+
+# Performance accelerators
+numba
+llvmlite
+
+# Development/testing
+pytest
+pytest-cov
+
+# Optional (but recommended)
+imageio
+tqdm
