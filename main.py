@@ -1,6 +1,12 @@
+# main.py
+
 from PIL import Image, ImageTk
 import tkinter as tk
-from functions.image_manipulation import floyd_steinberg, pixelate_image
+from functions.image_manipulation import (
+    floyd_steinberg, 
+    pixelate_image, 
+    apply_median_palette,
+)
 from functions.utils import save_image
 import os
 
@@ -9,87 +15,119 @@ class ImageProcessorApp:
         self.root = root
         self.root.title("Image Processor")
         
-        # Caminho da imagem original
-        self.original_image_path = "./data/untreated/test-image.png"
+        # Image paths
+        self.original_image_path = "./data/untreated/medieval-landscape.png"
         self.processed_image_path = "./data/treated/"
         
-        # Carrega a imagem original
+        # Load and store the original image in RGB mode
         try:
             self.input_image = Image.open(self.original_image_path)
-            self.input_image_processed = self.input_image.convert("RGB")
+            self.original_image = self.input_image.convert("RGB")  # Permanent reference to the original
+            self.current_image = self.original_image.copy()        # Track current image state
         except FileNotFoundError:
-            print(f"Erro: Arquivo não encontrado em {self.original_image_path}")
+            print(f"Error: File not found at {self.original_image_path}")
             exit()
         
-        # Exibe a imagem original na UI
-        self.display_image(self.input_image_processed)
+        # Display the original image
+        self.display_image(self.current_image)
         
-        # Cria os botões
+        # Create buttons
         self.create_buttons()
     
     def display_image(self, image):
-        """Exibe a imagem na interface gráfica."""
-        # Redimensiona a imagem para caber na janela
+        """Display the image in the GUI without modifying the original."""
+        display_image = image.copy()
         max_size = (600, 600)
-        image.thumbnail(max_size)
+        display_image.thumbnail(max_size)
         
-        # Converte a imagem para o formato Tkinter
-        self.tk_image = ImageTk.PhotoImage(image)
+        # Convert to Tkinter format
+        self.tk_image = ImageTk.PhotoImage(display_image)
         
-        # Exibe a imagem em um Label
+        # Update or create the image label
         if hasattr(self, 'image_label'):
             self.image_label.config(image=self.tk_image)
         else:
             self.image_label = tk.Label(self.root, image=self.tk_image)
             self.image_label.pack()
         
-        # Mantém uma referência para evitar garbage collection
-        self.image_label.image = self.tk_image
+        self.image_label.image = self.tk_image  # Keep a reference
     
     def create_buttons(self):
-        """Cria os botões para aplicar os efeitos."""
+        """Create filter application buttons."""
         button_frame = tk.Frame(self.root)
         button_frame.pack(pady=10)
         
-        # Botão para aplicar pixelização
+        # Pixelate button
         pixelate_button = tk.Button(
-            button_frame, text="Aplicar Pixelização", command=self.apply_pixelation
+            button_frame, text="Apply Pixelation", command=self.apply_pixelation
         )
         pixelate_button.pack(side=tk.LEFT, padx=10)
         
-        # Botão para aplicar dithering (Floyd-Steinberg)
+        # Dithering button
         dither_button = tk.Button(
-            button_frame, text="Aplicar Dithering", command=self.apply_dithering
+            button_frame, text="Apply Dithering", command=self.apply_dithering
         )
         dither_button.pack(side=tk.LEFT, padx=10)
+        
+        # Median Palette button (changed from Vibrant)
+        median_button = tk.Button(
+            button_frame, text="Apply Median Palette", command=self.apply_median_palette
+        )
+        median_button.pack(side=tk.LEFT, padx=10)
+
+        # Reset to Original button
+        reset_button = tk.Button(
+            button_frame, text="Reset to Original", command=self.reset_to_original
+        )
+        reset_button.pack(side=tk.LEFT, padx=10)
     
     def apply_pixelation(self):
-        """Aplica o efeito de pixelização e exibe a imagem."""
-        # Sempre usa a imagem original como base
-        pixelated_image = pixelate_image(self.input_image_processed, scale_factor=0.2)
-        self.display_image(pixelated_image)
+        """Apply pixelation to the current image."""
+        pixelated_image = pixelate_image(self.current_image)
+        self.current_image = pixelated_image  # Update current image
+        self.display_image(self.current_image)
         
-        # Salva a imagem pixelizada
+        # Save the processed image
         filename = os.path.basename(self.original_image_path)
         name, ext = os.path.splitext(filename)
-        save_image(pixelated_image, self.processed_image_path, f"{name}_pixelated{ext}")
-        print(f"Imagem pixelizada salva em {os.path.join(self.processed_image_path, f'{name}_pixelated{ext}')}")
+        save_image(self.current_image, self.processed_image_path, f"{name}_pixelated{ext}")
+        print(f"Pixelated image saved to {os.path.join(self.processed_image_path, f'{name}_pixelated{ext}')}")
     
     def apply_dithering(self):
-        """Aplica o efeito de dithering (Floyd-Steinberg) e exibe a imagem."""
-        # Sempre usa a imagem original como base
-        dithered_image = floyd_steinberg(self.input_image_processed)
-        self.display_image(dithered_image)
+        """Apply dithering to the current image."""
+        dithered_image = floyd_steinberg(self.current_image)
+        self.current_image = dithered_image  # Update current image
+        self.display_image(self.current_image)
         
-        # Salva a imagem com dithering
+        # Save the processed image
         filename = os.path.basename(self.original_image_path)
         name, ext = os.path.splitext(filename)
-        save_image(dithered_image, self.processed_image_path, f"{name}_floyd{ext}")
-        print(f"Imagem com dithering salva em {os.path.join(self.processed_image_path, f'{name}_floyd{ext}')}")
+        save_image(self.current_image, self.processed_image_path, f"{name}_floyd{ext}")
+        print(f"Dithered image saved to {os.path.join(self.processed_image_path, f'{name}_floyd{ext}')}")
+    
+    def reset_to_original(self):
+        """Reset the current image to the original state."""
+        self.current_image = self.original_image.copy()
+        self.display_image(self.current_image)
+        print("Image reset to original state.")
 
+
+    def apply_median_palette(self):
+        """Apply median color palette to the current image."""
+        median_image = apply_median_palette(self.current_image, num_colors=32)
+        self.current_image = median_image
+        self.display_image(self.current_image)
+        
+        # Save the processed image
+        filename = os.path.basename(self.original_image_path)
+        name, ext = os.path.splitext(filename)
+        save_image(self.current_image, self.processed_image_path, f"{name}_median{ext}")
+        print(f"Median palette image saved to {os.path.join(self.processed_image_path, f'{name}_median{ext}')}")
 
 if __name__ == "__main__":
-    # Cria a janela principal
     root = tk.Tk()
     app = ImageProcessorApp(root)
     root.mainloop()
+
+
+
