@@ -72,7 +72,7 @@ sphinx/
 sphinx-build/
 
 # Pasta de dados (Data folder)
-data/
+# data/
 
 # Arquivos executáveis (Executables)
 *.exe
