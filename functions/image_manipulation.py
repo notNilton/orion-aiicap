@@ -1,8 +1,13 @@
+# image_manipulation.py
+
 import numpy as np
 from PIL import Image
+import colorsys
+from sklearn.cluster import MiniBatchKMeans
+from scipy.spatial.distance import cdist
+import warnings
 
-
-def floyd_steinberg(image, levels=4):
+def floyd_steinberg(image, levels=10):
     """
     Aplica Floyd-Steinberg em imagens RGB com paleta reduzida.
     """
@@ -48,69 +53,88 @@ def floyd_steinberg(image, levels=4):
     pixels = np.clip(pixels, 0, 255)
     
     # Converte o array de volta para uma imagem PIL
-    output_image = Image.fromarray(pixels.astype(np.uint8), mode="RGB")
-    
-    # Conta a quantidade de cores na imagem após o dithering
-    output_color_count = count_colors(output_image)
-    print(f"Quantidade de cores após dithering: {output_color_count}")
-    
-    return output_image
+    return Image.fromarray(pixels.astype(np.uint8), mode="RGB")
 
-def pixelate_image(image, scale_factor=0.1, colors=64):
+def pixelate_image(image, pixel_size=256):
     """
-    Reduz a resolução da imagem, quantiza as cores e depois a expande, criando um efeito pixelizado.
+    Pixelates the image by reducing it to the specified pixel dimensions 
+    and scaling it back up using nearest neighbor interpolation.
     
     Args:
-        image (PIL.Image): A imagem original.
-        scale_factor (float): Fator de redução da resolução (0 < scale_factor < 1).
-        colors (int): Número de cores para quantização (padrão: 16).
+        image (PIL.Image): Original image
+        pixel_size (int): The desired pixel block size (e.g., 64 = 64x64 pixels)
+                         Common values: 256, 128, 64, 32, 16
     
     Returns:
-        PIL.Image: A imagem pixelizada com cores reduzidas.
+        PIL.Image: Pixelated image with original colors
     """
-    # Calcula as novas dimensões
     width, height = image.size
-    new_width = int(width * scale_factor)
-    new_height = int(height * scale_factor)
     
-    # Reduz a resolução da imagem
+    # Calculate new dimensions maintaining aspect ratio
+    aspect_ratio = width / height
+    if width > height:
+        new_width = pixel_size
+        new_height = int(pixel_size / aspect_ratio)
+    else:
+        new_height = pixel_size
+        new_width = int(pixel_size * aspect_ratio)
+    
+    # Ensure minimum dimension is at least 1 pixel
+    new_width = max(1, new_width)
+    new_height = max(1, new_height)
+    
+    # Reduce resolution and scale back up
     small_image = image.resize((new_width, new_height), Image.NEAREST)
-    
-    # Quantiza as cores para o número especificado
-    quantized_image = small_image.quantize(colors=colors)
-    
-    # Converte de volta para o modo RGB (necessário após quantização)
-    quantized_image = quantized_image.convert("RGB")
-    
-    # Conta a quantidade de pixels na imagem reduzida
-    pixel_count = new_width * new_height
-    print(f"Quantidade de pixels na imagem reduzida: {pixel_count}")
-    
-    # Conta a quantidade de cores na imagem pixelizada
-    color_count = count_colors(quantized_image)
-    print(f"Quantidade de cores na imagem pixelizada: {color_count}")
-    
-    # Expande a imagem de volta para o tamanho original
-    pixelated_image = quantized_image.resize((width, height), Image.NEAREST)
+    pixelated_image = small_image.resize((width, height), Image.NEAREST)
     
     return pixelated_image
 
-def count_colors(image):
+def get_dominant_colors(image, num_colors):
     """
-    Conta a quantidade de cores únicas em uma imagem.
-
-    Args:
-        image (PIL.Image): A imagem a ser analisada.
-
-    Returns:
-        int: Número de cores únicas na imagem.
+    Extract dominant colors by clustering and return median colors of each cluster.
+    Uses MiniBatchKMeans which is more memory efficient.
     """
-    # Converte a imagem para um array numpy
-    pixels = np.array(image)
+    # Convert image to numpy array
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")  # Suppress KMeans warnings
+        img_array = np.array(image.convert("RGB"))
+        h, w, _ = img_array.shape
+        
+        # Reshape to 2D array of pixels (sample if too large)
+        pixels = img_array.reshape((h * w, 3))
+        
+        # For large images, use a subset of pixels
+        if len(pixels) > 10000:
+            rng = np.random.default_rng()
+            pixels = rng.choice(pixels, size=10000, replace=False)
+        
+        # Use MiniBatchKMeans which is more efficient
+        kmeans = MiniBatchKMeans(n_clusters=num_colors, 
+                                random_state=0,
+                                batch_size=256,
+                                compute_labels=True).fit(pixels)
+        
+        # Get cluster centers (already computed efficiently)
+        cluster_colors = kmeans.cluster_centers_.astype(int)
+        
+        return [tuple(color) for color in cluster_colors]
+
+def apply_median_palette(image, num_colors):
+
+    """
+    Quantize the image using clustered colors.
+    More efficient implementation using direct cluster centers.
+    """
+    # Get the cluster colors
+    palette_colors = get_dominant_colors(image, num_colors)
     
-    # Redimensiona o array para uma lista de pixels (cada pixel é uma tupla RGB)
-    pixels = pixels.reshape(-1, pixels.shape[-1])
+    # Create a palette image
+    palette = Image.new("P", (1, 1))
+    palette_data = [color for rgb in palette_colors for color in rgb]
+    # Pad palette with black if needed
+    palette_data += [0] * (256 * 3 - len(palette_data))
+    palette.putpalette(palette_data)
     
-    # Remove duplicatas para contar cores únicas
-    unique_colors = np.unique(pixels, axis=0)
-    return len(unique_colors)
+    # Quantize the image using the custom palette
+    quantized = image.convert("RGB").quantize(palette=palette, dither=Image.NONE)
+    return quantized.convert("RGB")
