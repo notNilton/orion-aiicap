@@ -94,3 +94,6 @@ node_modules/
 # Arquivos de configuração gerados automaticamente (Auto-generated configuration files)
 .envrc
 .direnv
+
+
+.\data\treated
