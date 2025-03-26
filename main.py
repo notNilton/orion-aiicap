@@ -183,7 +183,10 @@ class ImageProcessorApp:
             filename = os.path.basename(self.original_image_path)
             name, ext = os.path.splitext(filename)
             save_path = os.path.join(self.processed_image_path, f"{name}_{suffix}{ext}")
-            save_image(self.current_image, save_path)
+            # Make sure the directory exists
+            os.makedirs(self.processed_image_path, exist_ok=True)
+            # Call save_image with correct arguments
+            save_image(self.current_image, self.processed_image_path, f"{name}_{suffix}{ext}")
             print(f"Image saved to {save_path}")
         except Exception as e:
             print(f"Error saving image: {e}")
