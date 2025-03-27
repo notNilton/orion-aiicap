@@ -1,19 +1,13 @@
-# Bytecode Python (Arquivos de bytecode do Python)
-*.pyc
-*.pyo
+### Python ###
+# Byte-compiled / optimized / DLL files
+*.py[cod]
+*.so
+*.egg
+*.egg-info/
 __pycache__/
+.python-version
 
-# Arquivos de distribuição / empacotamento (Distribution / packaging)
-build/
-dist/
-eggs/
-.egg-info/
-wheel/
-wheels/
-*.whl
-MANIFEST
-
-# Virtualenv (Ambientes virtuais)
+# Virtual environments
 venv/
 .venv/
 env/
@@ -21,79 +15,147 @@ env/
 ENV/
 env.bak/
 venv.bak/
+pip-selfcheck.json
 
-# Logs e arquivos temporários (Logs and temp files)
-*.log
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.whl
+*.tar.gz
+*.pyz
+*.pyd
+MANIFEST
+pip-wheel-metadata/
+
+### IDE ###
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# PyCharm
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Other IDEs
+.project
+.pydevproject
+.settings/
+*.sublime-workspace
+*.sublime-project
+
+### System ###
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Temporary files
 *.tmp
-temp/
-tmp/
 *.bak
 *.swp
 *.swo
-*.diff
+*~
+*.rej
+*.orig
+*.log
 *.patch
-*.lock*
+*.diff
+*.lock
+*.pid
 
-# Arquivos do sistema operacional (OS generated files)
-.DS_Store
-Thumbs.db
-
-# Arquivos de projeto e IDEs (Project and IDE files)
-.idea/
-.project
-.vscode/
-*.suo
-*.ntvs
-*.njsproj
-*.sln
-*.pdb
-*.user
-*.usertasks
-*.vspscc
-
-# Testes e cobertura (Test and coverage reports)
+### Testing ###
+# Unit test / coverage reports
 htmlcov/
 .tox/
 .coverage
 .coverage.*
-*.nosetests
-*.pytest_cache/
-.pytype_cache/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
 .mypy_cache/
-.dmypy_cache/
-.pyre_cache/
+.pyre/
+.pytype/
 
-# Documentação (Documentation)
-_build/
-build/
-gh-pages/
+### Documentation ###
+docs/_build/
+docs/source/generated/
 readthedocs/
-sphinx/
 sphinx-build/
 
-# Pasta de dados (Data folder)
-# data/
+### Data ###
+# Ignore all in data/ except untreated/
+data/*
+!data/untreated/
+!data/untreated/**
 
-# Arquivos executáveis (Executables)
-*.exe
+### Build ###
+# C extensions
+*.so
+
+### Logs ###
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+### Node ###
+# Node.js dependencies
+node_modules/
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+### Compiled Source ###
+*.com
+*.class
 *.dll
+*.exe
+*.o
+*.pyc
+*.pyo
+*.pyd
 *.so
 *.dylib
 
-# Outros arquivos ignorados comuns (Other common ignored files)
-.Python
-.ropeproject
-*.orig
-*.rej
-.gitattributes
-.gitmodules
+### Packages ###
+# It's better to unpack these files and commit the raw source
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
 
-# Pasta de módulos do node_modules (se você usar frontend)
-node_modules/
-
-# Arquivos de configuração gerados automaticamente (Auto-generated configuration files)
+### Other ###
+# Custom
+*.env
 .envrc
-.direnv
-
-
-.\data\treated
+.direnv/
+.ropeproject
+*.sqlite3
+*.db
+*.dump
+*.rdb
+*.sql
+*.sqlite
+*.dump
+*.rdbE
