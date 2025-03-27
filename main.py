@@ -1,14 +1,14 @@
 from PIL import Image, ImageTk
 import tkinter as tk
 import numpy as np
-from functions.image_manipulation import (
+from functions.image_processor import (
     floyd_steinberg, 
     pixelate_image, 
     apply_median_palette,
+    fix_image
 )
 from functions.utils import save_image
 from functions.strategies import Strategies
-from functions.image_processor import fix_image
 import os
 
 class ImageProcessorApp:
