@@ -1,48 +1,87 @@
-# AIICAP - Artificial Intelligence Image Correction and Augmentation Pipeline
 
-This Python script uses artificial intelligence techniques to process and transform an input image. The pipeline includes pixelation, palette reduction, dithering, and contrast enhancement.
+# Artificial 
 
-## Overview
+A Python-based GUI application for applying various image processing techniques including pixelation, dithering (Floyd-Steinberg), and median palette reduction.
 
-1. **Pixelation**: Resizes the input image to a specified size to create a pixelated effect.
-2. **Palette Reduction**: Reduces the number of colors in the image palette using KMeans clustering.
-3. **Dithering**: Applies Floyd-Steinberg dithering or simple rounding to distribute colors and reduce artifacts.
-4. **Contrast Enhancement**: Enhances the contrast of the processed image.
-5. **Saving**: Saves the processed image with a descriptive filename indicating the processing parameters used.
+## Features
 
-## Requirements
+- **Pixelation**: Reduce image resolution and scale back up for a blocky pixel effect
+- **Floyd-Steinberg Dithering**: Apply error-diffusion dithering to reduce color banding
+- **Median Palette Reduction**: Quantize image to a reduced color palette using k-means clustering
+- **Interactive GUI**: Built with Tkinter for easy operation
+- **Image Comparison**: View original and processed images side-by-side
+- **Auto-saving**: Processed images are automatically saved with descriptive filenames
 
-- Python 3.x
-- NumPy
-- Numba
-- Pillow (Python Imaging Library)
-- scikit-learn (for KMeans clustering)
+## Installation
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/notNilton/orion-aiicap.git
+   cd image-processor
+   ```
+
+2. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+   Or install them manually:
+   ```bash
+   pip install numpy opencv-python matplotlib numba scikit-learn Pillow
+   ```
 
 ## Usage
 
-1. Clone the repository or download the script.
-2. Ensure all dependencies are installed using `pip install -r requirements.txt`.
-3. Replace the `image_path` variable in the script with the path to your input image.
-4. Optionally adjust the `pixelation_size`, `n_colors`, and `use_floyd_steinberg` variables to customize the processing.
-5. Run the script using `python image_pipeline.py`.
+1. Place your input images in the `./data/untreated/` directory
+2. Run the application:
+   ```bash
+   python main.py
+   ```
+3. Use the buttons in the GUI to apply different effects:
+   - **Apply Pixelation**: Creates a blocky pixel art effect
+   - **Apply Dithering**: Applies Floyd-Steinberg dithering
+   - **Apply Median Palette**: Reduces colors using k-means clustering
+   - **Reset to Original**: Reverts to the original image
 
-## Parameters
+Processed images are automatically saved to `./data/treated/` with appropriate suffixes.
 
-- `image_path`: Path to the input image.
-- `pixelation_size`: Desired size for pixelation.
-- `n_colors`: Number of colors to reduce the palette to.
-- `use_floyd_steinberg`: Set to `True` for Floyd-Steinberg dithering, `False` for simple rounding.
+## File Structure
 
-## Output
+```
+image-processor/
+├── data/
+│   ├── untreated/          # Input images go here
+│   └── treated/            # Processed images are saved here
+├── functions/
+│   ├── image_manipulation.py  # Core image processing functions
+│   └── utils.py               # Utility functions
+├── main.py                 # Main application GUI
+├── README.md               # This file
+└── requirements.txt        # Python dependencies
+```
 
-The processed image is saved with a filename indicating the processing parameters used.
+## Technical Details
 
-Example filename: `river_256_16bit_2Contrast_False.png`
+### Implemented Algorithms
 
-## License
+1. **Floyd-Steinberg Dithering**:
+   - Error-diffusion dithering algorithm
+   - Reduces color banding while maintaining perceived color depth
+   - Implemented with NumPy for efficient pixel operations
 
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+2. **Pixelation**:
+   - Resizes image to lower resolution and scales back up
+   - Uses nearest-neighbor interpolation to maintain blocky appearance
 
-## Contact
+3. **Median Palette Reduction**:
+   - Uses MiniBatchKMeans clustering to identify dominant colors
+   - Quantizes image to the clustered color palette
+   - More efficient than standard k-means for large images
 
-For any inquiries, please contact [nilton.naab@gmail.com](mailto:nilton.naab@gmail.com).
+### Dependencies
+
+- Python 3.7+
+- Pillow (PIL Fork) - Image processing
+- NumPy - Numerical operations
+- scikit-learn - K-means clustering
+- Tkinter - GUI (usually included with Python)
